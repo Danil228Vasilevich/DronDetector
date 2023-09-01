@@ -102,13 +102,16 @@ class ReadPower:
         
 
         if np.array_equal(self._is_ready_request, np.zeros(len(self._is_ready_request), dtype = "int")):
-            self._call_back_func(123, 234)
-            self.Stop()
+            p, f =self.getData(self._len_answer_buf)
+            data = dict(zip(f, p))
+            self._call_back_func(data)
+            self._is_ready_request = np.ones(len(self._listFreq),dtype = "int") * self._len_answer_buf
+
+            
         
         
 
     def _readData(self):
-        
         self._alive = True
         while self._alive:
             try:
