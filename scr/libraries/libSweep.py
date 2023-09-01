@@ -7,7 +7,7 @@ import time
 
 
 class ReadPower:
-    def __init__(self, call_back_func:function, len_answer_buf:int, startFreq=2401, stopFreq=2483, binSize=1,
+    def __init__(self, call_back_func, len_answer_buf, startFreq=2401, stopFreq=2483, binSize=1,
             interval=0.0, gain=40, ppm=0, crop=0, singleShot=False,
             deviceIndex=0, sampleRate=20000000) -> None:
         self._startFreq = startFreq
@@ -21,7 +21,7 @@ class ReadPower:
         self._sampleRate = sampleRate
         self._call_back_func = call_back_func
         self._len_answer_buf = len_answer_buf
-        
+
 
         if gain < 0:
             gain = 0
@@ -32,12 +32,13 @@ class ReadPower:
 
         self._sizeHistoryBufer = 100
 
-        self._numChanel = int((self._stopFreq - self._startFreq) / self._binSize) + 1
+        self._listFreq = np.arange(self._startFreq + self._binSize/2, self._stopFreq - binSize/2, binSize)
+        self._numChanel = len(self._listFreq)
 
         self._historyBufer =np.full((self._numChanel , self._sizeHistoryBufer ), None, dtype="float32")
 
-        self._listFreq = np.arange(self._startFreq + self._binSize/2, self._stopFreq - binSize/2, binSize)
-        
+        self._is_ready_request = np.ones(len(self._listFreq),dtype = "int") * self._len_answer_buf
+
         self._TreadRead = threading.Thread(target=self._readData)
         self._alive = False
         self._process = None
@@ -96,8 +97,15 @@ class ReadPower:
         for i in range(len(data)):
             if(pointData + i) < self._numChanel:
                 line = self._historyBufer[pointData + i]
+                if self._is_ready_request[pointData + i] != 0: self._is_ready_request[pointData + i] -= 1
                 self._historyBufer[pointData + i] = np.hstack((data[i], line[:-1]))
+        
 
+        if np.array_equal(self._is_ready_request, np.zeros(len(self._is_ready_request), dtype = "int")):
+            self._call_back_func(123, 234)
+            self.Stop()
+        
+        
 
     def _readData(self):
         

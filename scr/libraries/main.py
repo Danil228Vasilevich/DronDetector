@@ -2,15 +2,19 @@ import numpy
 import libSweep
 import time
 
-def test_call_back(power, freq):
-    print(power, freq)
+#from DataClasses.DataFreq import DataFreq
+
+#object1 = DataFreq(2.43, -40.1)
+
+
+
+def test_call_back(data):
+    print(data)
 
 
 if __name__ == "__main__":
-    data = libSweep(test_call_back,binSize=1)
+    data = libSweep.ReadPower(call_back_func = test_call_back, len_answer_buf =  10, binSize=1)
     data.Start()
     time.sleep(5)
     power, freq = data.getData(10)
-    print(power)
-    
-    print(123)
+   
