@@ -1,13 +1,16 @@
 import numpy
 import libSweep
 import time
+import sys
 
-from server.server import Server
+
+sys.path.append("../DataClasses/")
+from DataFreq import DataFreq
 
 
-server = Server()
+# server = Server()
 
-server.send([obj1, obj2, obj3])
+# server.send([obj1, obj2, obj3])
 
 # send_data = []
 
@@ -27,18 +30,19 @@ server.send([obj1, obj2, obj3])
 
 
 class Detect:
-    def __init__(self, ranges, ) -> None:
+    def __init__(self, ranges) -> None:
         self._ranges = ranges
 
-        self._data = 
+        self.sdr_data = libSweep(self.data_call_back, 10)
+
+        self._qeu = numpy.array()
+
+
 
     def data_call_back(self, data):
         pass
 
 
 if __name__ == "__main__":
-    data = libSweep.ReadPower(call_back_func = test_call_back, len_answer_buf =  10, binSize=1)
-    data.Start()
-    time.sleep(5)
-    power, freq = data.getData(10)
+    detect = Detect([0,1])
    
