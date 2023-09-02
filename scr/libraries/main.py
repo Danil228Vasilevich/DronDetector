@@ -2,6 +2,7 @@ import numpy as np
 from libSweep import ReadPower
 import time
 import sys
+from math import exp
 
 
 sys.path.append("../DataClasses/")
@@ -32,13 +33,15 @@ from DataFreq import DataFreq
 class Detect:
     def __init__(self, ranges) -> None:
         self._ranges = ranges
-
+        self._len_answer_buf = 50
         self._nume_range =  0 
+        self._binSize = 5
 
         self._sdr_data = ReadPower(call_back_func=self.data_call_back,
-                                   len_answer_buf=10,
+                                   len_answer_buf=self._len_answer_buf,
                                    startFreq=self._ranges[self._nume_range][0],
-                                   stopFreq=self._ranges[self._nume_range][1])
+                                   stopFreq=self._ranges[self._nume_range][1], binSize=self._binSize)
+
         
         self._sdr_data.Start()
 
@@ -50,11 +53,13 @@ class Detect:
         self._nume_range += 1
         if self._nume_range >= len(self._ranges): self._nume_range = 0
 
+        #self._sdr_data.new_freq(startFreq=self._ranges[self._nume_range][0], stopFreq=self._ranges[self._nume_range][1], binSize=1)
         self._sdr_data.Stop()
+        del self._sdr_data
         self._sdr_data = ReadPower(call_back_func=self.data_call_back,
-                                   len_answer_buf=10,
+                                   len_answer_buf=self._len_answer_buf,
                                    startFreq=self._ranges[self._nume_range][0],
-                                   stopFreq=self._ranges[self._nume_range][1])
+                                   stopFreq=self._ranges[self._nume_range][1], binSize=self._binSize)
         self._sdr_data.Start()
 
     def procces(self):
@@ -68,14 +73,62 @@ class Detect:
             
 
     def _analysis(self, data):
+        
         powers = np.array(data[0])
+        powers = np.transpose(powers)
         freq = data[1]
+        mask_power = np.zeros((len(powers), len(powers[0])))
 
-        print(powers, freq)
+        list_lower_mean = np.mean(powers, axis = 1)
+        
+        
+        for i in range(len(powers)):
+            line = powers[i].copy() 
+
+
+
+            #list_lower_mean[i] = np.mean(line[line < list_lower_mean[i]])
+            mask_power[i] = np.where(powers[i] > list_lower_mean[i], 1, mask_power[i])
+        
+        
+
+        mask_power = np.mean(mask_power, axis = 0)
+
+        mean_mask = np.mean(mask_power) * 10
+
+
+
+        print("---"*80)
+        for i in range(len(mask_power)):
+            print( str(freq[i]) + (int((exp((mask_power[i] - np.mean(mask_power))*20)))*"#"))
+
+        
+            
+
+        
+
+        
+        
+
+
+        
+
+
+
+        # for i in range(len(list_lower_mean)):
+        #     higher_mean = np.mean(powers[i])
+        #     list_lower_mean[i] = np.mean(powers[i][copy_powers[i] < higher_mean])
+        #     print(list_lower_mean[i], powers[i])
+
+
+
+
+        
+
 
 
 
 if __name__ == "__main__":
-    detect = Detect([(2401,2483), (3300, 3500)])
+    detect = Detect([(2401,2483)])
     while True:
         detect.procces()
