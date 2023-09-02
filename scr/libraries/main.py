@@ -1,5 +1,5 @@
-import numpy
-import libSweep
+import numpy as np
+from libSweep import ReadPower
 import time
 import sys
 
@@ -33,16 +33,49 @@ class Detect:
     def __init__(self, ranges) -> None:
         self._ranges = ranges
 
-        self.sdr_data = libSweep(self.data_call_back, 10)
+        self._nume_range =  0 
 
-        self._qeu = numpy.array()
+        self._sdr_data = ReadPower(call_back_func=self.data_call_back,
+                                   len_answer_buf=10,
+                                   startFreq=self._ranges[self._nume_range][0],
+                                   stopFreq=self._ranges[self._nume_range][1])
+        
+        self._sdr_data.Start()
 
+        self._qeu = list()
 
 
     def data_call_back(self, data):
-        pass
+        self._qeu.append(data)
+        self._nume_range += 1
+        if self._nume_range >= len(self._ranges): self._nume_range = 0
+
+        self._sdr_data.Stop()
+        self._sdr_data = ReadPower(call_back_func=self.data_call_back,
+                                   len_answer_buf=10,
+                                   startFreq=self._ranges[self._nume_range][0],
+                                   stopFreq=self._ranges[self._nume_range][1])
+        self._sdr_data.Start()
+
+    def procces(self):
+        
+        if len(self._qeu) < 1: return
+        
+        test = self._qeu[0]
+        self._qeu = self._qeu[1:]
+        
+        self._analysis(test)
+            
+
+    def _analysis(self, data):
+        powers = np.array(data[0])
+        freq = data[1]
+
+        print(powers, freq)
+
 
 
 if __name__ == "__main__":
-    detect = Detect([0,1])
-   
+    detect = Detect([(2401,2483), (3300, 3500)])
+    while True:
+        detect.procces()

@@ -21,6 +21,7 @@ class ReadPower:
         self._sampleRate = sampleRate
         self._call_back_func = call_back_func
         self._len_answer_buf = len_answer_buf
+        self._event_tread = threading.Event()
 
 
         if gain < 0:
@@ -39,7 +40,7 @@ class ReadPower:
 
         self._is_ready_request = np.ones(len(self._listFreq),dtype = "int") * self._len_answer_buf
 
-        self._TreadRead = threading.Thread(target=self._readData)
+        self._TreadRead = threading.Thread(target=self._readData, args=(self._event_tread,))
         self._alive = False
         self._process = None
 
@@ -73,14 +74,15 @@ class ReadPower:
                         "-g", "{}".format(int(self._vgaGain)),
             ]
         data = subprocess.check_output(cmdline, universal_newlines=False,  stderr=subprocess.DEVNULL)
-
+        self._alive = True
         return data
 
     def Stop(self):
-        self._alive = False
-        while self._TreadRead.is_alive():
-            #print(self._TreadRead.is_alive())
-            continue
+        self._event_tread.set()
+
+        # while self._TreadRead.is_alive():
+            
+        #     continue
 
         if self._process:
             self._process.terminate()
@@ -100,20 +102,23 @@ class ReadPower:
                 if self._is_ready_request[pointData + i] != 0: self._is_ready_request[pointData + i] -= 1
                 self._historyBufer[pointData + i] = np.hstack((data[i], line[:-1]))
         
-
+        #print(self._is_ready_request)
         if np.array_equal(self._is_ready_request, np.zeros(len(self._is_ready_request), dtype = "int")):
-            p, f =self.getData(self._len_answer_buf)
-            data = dict(zip(f, p))
-            self._call_back_func(data)
+            
+            self._call_back_func(self.getData(self._len_answer_buf))
             self._is_ready_request = np.ones(len(self._listFreq),dtype = "int") * self._len_answer_buf
 
             
         
         
 
-    def _readData(self):
-        self._alive = True
-        while self._alive:
+    def _readData(self, event):
+
+        while True:
+            
+            if event.is_set():
+                break
+            #print(self._alive)
             try:
                 buf = self._process.stdout.read(4)
             except AttributeError as e:
