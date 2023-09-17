@@ -1,10 +1,8 @@
 import numpy as np
 import threading as Tread
-import time
 import subprocess
 import struct
 import sys
-from numpy import ndarray
 
 from DataClasses.PowerBufer import PowerBufer
 
@@ -37,11 +35,10 @@ class SweepPower:
 
         #--------------------------tread----------------------------------
         self._is_alive = False
-        self._event_read_tread = Tread.Event()
-        self._read_tread = Tread.Thread(target=self._read_data, args=(self._event_read_tread,))
+        self._event_read_tread: Tread.Event
+        self._read_tread: Tread.Thread
         
-        self._bufer = PowerBufer(self._list_freq)
-        self._start_time = 0
+        self._bufer: PowerBufer
     
     def get_alive(self):
         return self._is_alive
@@ -53,9 +50,6 @@ class SweepPower:
         self._freq = (min_freq, max_freq)
 
         if is_alive: self.start()
-        
-
-    
 
     def start(self) -> None:
         self._event_read_tread = Tread.Event()
@@ -87,8 +81,9 @@ class SweepPower:
             self._process.terminate()
 
     def _return_data(self) -> None:
-        
         self._call_back_func(self._bufer)
+        if isinstance(self._bufer, PowerBufer): self._bufer.zeroing_data()
+        else: print("error bufer not PowerBufer")
         
 
     # def singl_shot(self):
@@ -115,13 +110,11 @@ class SweepPower:
     def _bufering(self, data) -> None:
         
         self._bufer.append(data)
-        
-        if len(self._bufer) * int(5/self._bin_size) >= self._len_bufer*len(self._list_freq):
-            
-            self._return_data()
 
-            if isinstance(self._bufer, PowerBufer): self._bufer.zeroing_data()
-            else:print("error bufer not PowerBufer")
+        # 5 -> standart_bin_size в hackrf_sweep
+        if len(self._bufer) * int(5/self._bin_size) >= self._len_bufer*len(self._list_freq): self._return_data()
+
+            
 
     def _read_data(self, event) -> None:
         while self._is_alive:
