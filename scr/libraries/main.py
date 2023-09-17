@@ -4,8 +4,8 @@ import sys
 from math import exp
 
 
-sys.path.append("../DataClasses/")
-from DataFreq import DataFreq
+#sys.path.append("../DataClasses/")
+from DataClasses.DataFreq import DataFreq
 
 
 # server = Server()

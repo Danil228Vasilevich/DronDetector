@@ -3,33 +3,36 @@ import time
 
 
 def test():
-    cmdline = ["hackrf_sweep", "-f", "{}:{}".format(2401, 2408)]
+    cmdline = ["hackrf_sweep", "-f", "2401:2483"]
     _process = subprocess.Popen(
         cmdline,
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
         # universal_newlines=False,
     )
+    ex = 2
+    old_time = time.time()
+    datas = []
     while True:
-        print(_process.stdout.readline())
-
-        time.sleep(0.5)
-        print("timer")
-        count = 0
-        for i in _process.stdout:
-            print(count)
-            print(i)
-            count += 1
+        new_time = time.time()
+        if new_time - old_time > 2:
+            print(len(datas))
+            old_time = time.time()
+            datas = []
         
-        time.sleep(5)
+        data = _process.stdout.readline()
 
-        _process = subprocess.check_output(
-        cmdline,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        # universal_newlines=False,
-        )
+        datas.append(data)
+
+        # time.sleep(1)
+        # print("timer")
+        # count = 0
+        # _process.terminate()
+        # data = _process.stdout.readlines()
+        # print(data, len(data))
+        #print(len(_process.stdout.readlines()))
         
+        #time.sleep(5)
         
         # print(_process.stdout.readlines())
         # try:

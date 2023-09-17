@@ -104,7 +104,6 @@ class ReadPower:
         
         #print(self._is_ready_request)
         if np.array_equal(self._is_ready_request, np.zeros(len(self._is_ready_request), dtype = "int")):
-            
             self._call_back_func(self.getData(self._len_answer_buf))
             self._is_ready_request = np.ones(len(self._listFreq),dtype = "int") * self._len_answer_buf
 
@@ -115,7 +114,6 @@ class ReadPower:
     def _readData(self, event):
 
         while True:
-            
             if event.is_set():
                 break
             #print(self._alive)
