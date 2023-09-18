@@ -28,13 +28,11 @@ class PowerBufer:
         self._bufer = []
     
     def _unpack_data(self) -> ndarray:
-        
-        freq = struct.unpack('QQ', self._bufer[0][:16])
-        quantity_freq = len(freq)
+        data = np.frombuffer(self._bufer[0][16:], dtype='<f4')
+        quantity_freq = len(data)
 
         size_y =  int((len(self._bufer) * quantity_freq)/len(self._list_freq))
         size_x = len(self._list_freq)
-
         size_buf = (size_x, size_y)
         
         unpack_data =np.full(size_buf, None, dtype="float32")
@@ -46,9 +44,10 @@ class PowerBufer:
             data = np.frombuffer(buf[16:], dtype='<f4')
             
             for i in range(len(data)):
-                if(point_data + i) < len(self._list_freq):
-
-                    line = unpack_data[point_data + i]
-                    unpack_data[point_data + i] = np.hstack((data[i], line[:-1]))
+                if(point_data + i) >= len(self._list_freq): continue
+                
+                line = unpack_data[point_data + i]
+                unpack_data[point_data + i] = np.hstack((data[i], line[:-1]))
+                
         
         return unpack_data

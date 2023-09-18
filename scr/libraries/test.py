@@ -20,7 +20,7 @@ def test():
             old_time = time.time()
             datas = []
         
-        data = _process.stdout.readline()
+        if _process is not None: data = _process.stdout.readline()
 
         datas.append(data)
 
