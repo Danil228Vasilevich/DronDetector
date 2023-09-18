@@ -8,8 +8,8 @@ from HackSweep import SweepPower
 
 
 from DataClasses.DataFreq import RangeFreq
-from DataClasses.PowerBufer import PowerBufer
-from DataClasses.Queue import QueuePowerBufer
+from DataClasses.PowerBuffer import PowerBuffer
+from DataClasses.Queue import QueuePowerBuffer
 
 
 class Detect:
@@ -17,13 +17,13 @@ class Detect:
         self._list_listenable_freq: list[RangeFreq] = list_listenable_freq
 
         self._is_alive = False
-        self._queue: QueuePowerBufer = QueuePowerBufer()
+        self._queue: QueuePowerBuffer = QueuePowerBuffer()
 
         self._event_detecting_thread: Thread.Event
         self._detecting_thread: Thread.Thread
         self._power_sweep: SweepPower
 
-    def _data_call_back(self, data: PowerBufer) -> None:
+    def _data_call_back(self, data: PowerBuffer) -> None:
 
         self._queue.add_element(data)
 
@@ -51,14 +51,13 @@ class Detect:
         while self._is_alive:
             if event.is_set():break
             if len(self._queue) == 0:continue
-            power_bufer = self._queue.get_element()
+            power_buffer = self._queue.get_element()
             
-            freq_list = power_bufer.get_freq()
-            power_data = power_bufer.get_data()
+            freq_list = power_buffer.get_freq()
+            power_data = power_buffer.get_data()
             power_data = np.rot90(power_data)
             
             # тут есть алгоритм
-            #filtr
 
             plt.plot(power_data[2])
             new_power_data = signal.medfilt2d(power_data, kernel_size=3)
