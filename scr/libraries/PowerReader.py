@@ -7,69 +7,80 @@ import copy
 from math import ceil
 from numpy import ndarray
 
+from abc import ABC, abstractmethod
 
 from DataClasses.PowerBuffer import PowerBuffer
 from DataClasses.DataFreq import RangeFreq
 from DataClasses.Task import PowerTask
 
 
-class SweepPower:
-    def __init__(self, call_back_func, task: PowerTask) -> None:
-        # settings hack_rf
+class PowerReader(ABC):
+    def __init__(self, call_back_func) -> None:
         self._call_back_func = call_back_func
-        self._task = task
+        self._is_alive = False
+
+    @property
+    def alive(self):
+        return self._is_alive
+
+    @abstractmethod
+    def start(self, task: PowerTask):
+        pass
+
+    @abstractmethod
+    def stop(self):
+        pass
+
+
+class SweepPower(PowerReader):
+    def __init__(self, call_back_func) -> None:
+        super().__init__(call_back_func)
 
         # --------------------------tread----------------------------------
-        self._is_alive = False
         self._event_read_tread: Tread.Event
         self._read_tread: Tread.Thread
         self._buffer: PowerBuffer
 
         self._limit_len_buffer: int
 
-    def get_alive(self):
-        return self._is_alive
-
-    def start(self) -> None:
+    def start(self, task: PowerTask) -> None:
         self._event_read_tread = Tread.Event()
         self._read_tread = Tread.Thread(
             target=self._read_data, args=(self._event_read_tread,)
         )
         self._list_freq = np.arange(
-            self._task.range_freq.min_freq,
-            self._task.range_freq.max_freq,
-            self._task.range_freq.bin_size,
+            task.range_freq.min_freq,
+            task.range_freq.max_freq,
+            task.range_freq.bin_size,
         )
 
-        # тут блять не всегда 5 сука надо думать как
-        amount_freq = ceil(ceil(20 / self._task.range_freq.bin_size) / 4)
+        amount_freq = ceil(ceil(20 / task.range_freq.bin_size) / 4)
+
         amount_freq = amount_freq if amount_freq % 2 else amount_freq + 1
-        print(amount_freq)
 
         self._limit_len_buffer = ceil(
-            self._task.sample_length
+            task.sample_length
             * (
-                (self._task.range_freq.max_freq - self._task.range_freq.min_freq)
-                / self._task.range_freq.bin_size
+                (task.range_freq.max_freq - task.range_freq.min_freq)
+                / task.range_freq.bin_size
             )
             / amount_freq
         )
-        print(self._limit_len_buffer)
 
-        self._buffer = PowerBuffer(self._task)
+        self._buffer = PowerBuffer(task)
         cmdline = [
             "hackrf_sweep",
             "-f",
             "{}:{}".format(
-                int(self._task.range_freq.min_freq), int(self._task.range_freq.max_freq)
+                int(task.range_freq.min_freq), int(task.range_freq.max_freq)
             ),
             "-B",
             "-w",
-            "{}".format(int(self._task.range_freq.bin_size * 1e6)),
+            "{}".format(int(task.range_freq.bin_size * 1e6)),
             "-l",
-            "{}".format(int(self._task.lna_gain)),
+            "{}".format(int(task.lna_gain)),
             "-g",
-            "{}".format(int(self._task.vga_gain)),
+            "{}".format(int(task.vga_gain)),
         ]
         self._process = subprocess.Popen(
             cmdline,
