@@ -9,7 +9,7 @@ from PowerReader import PowerReader, SweepPower
 
 from DataClasses.DataFreq import RangeFreq
 from DataClasses.PowerBuffer import PowerBuffer
-from DataClasses.Queue import QueuePowerBuffer, CircularStack
+from DataClasses.Stack import QueuePowerBuffer, CircularStack
 from DataClasses.Task import PowerTask
 
 
