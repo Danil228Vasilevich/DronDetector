@@ -1,11 +1,13 @@
 import numpy as np
 import threading as Thread
 from scipy import signal
+import pickle
 
 import matplotlib.pyplot as plt
 
 from PowerReader import PowerReader, SweepPower
 
+from abc import ABC, abstractmethod
 
 from DataClasses.DataFreq import RangeFreq
 from DataClasses.PowerBuffer import PowerBuffer
@@ -18,7 +20,7 @@ class Detecter:
         self._circular_task: CircularStack = circular_task
         self._is_alive = False
         self._queue: QueuePowerBuffer = QueuePowerBuffer()
-        self._power_source: PowerReader = power_source(self._data_call_back)
+        self._power_source: PowerReader = power_source_constructor(self._data_call_back)
 
         self._event_detecting_thread: Thread.Event
         self._detecting_thread: Thread.Thread
@@ -55,33 +57,31 @@ class Detecter:
             power_data = power_buffer.get_data()
             power_data = np.rot90(power_data)
 
-            # тут есть алгоритм
-            fig, axs = plt.subplots(nrows=3, ncols=1)
+            # Тут есть алгоритм
 
-            # plt.plot(power_data[2])
-            new_power_data = signal.medfilt2d(power_data, kernel_size=3)
 
-            # exp_data = np.exp(
-            #     np.subtract(
-            #         new_power_data[2],
-            #         np.mean(power_data[2]),
-            #     )
-            # )
-            exp_data = np.exp(power_data[2])
+class PowerRecorder(Detecter):
+    def __init__(
+        self, circular_task: CircularStack, power_source_constructor, path: str
+    ) -> None:
+        super().__init__(circular_task, power_source_constructor)
+        self._path = path
+        self._count = 0
 
-            list_freq = power_buffer.get_freq()
+    def _detecting(self, event) -> None:
+        while self._is_alive:
+            if event.is_set():
+                break
+            if len(self._queue) == 0:
+                continue
 
-            axs[0].plot(new_power_data[2])
-            axs[0].plot(power_data[2])
-            axs[0].plot(
-                np.ones(len(new_power_data[2]))
-                * np.mean(power_data[2][power_data[2] < np.mean(power_data[2])])
-            )
+            power_buffer = self._queue.get()
+            name_file = f"{self._path}Sample{self._count}.data"
 
-            axs[1].plot(list_freq, exp_data)
-            axs[2].plot(list_freq, np.sqrt(exp_data))
-
-            plt.show()
+            with open(name_file, "w+b") as f:
+                print("save_data")
+                pickle.dump(power_buffer, f)
+                self._count += 1
 
 
 if __name__ == "__main__":

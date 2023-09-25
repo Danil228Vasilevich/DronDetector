@@ -44,7 +44,6 @@ class PowerBuffer:
         size_y = int((len(self._buffer) * quantity_freq) / len(self._list_freq))
         size_x = len(self._list_freq)
         size_buf = (size_x, size_y)
-        print(size_buf)
 
         unpack_data = np.full(size_buf, None, dtype="float32")
         for buf in self._buffer:

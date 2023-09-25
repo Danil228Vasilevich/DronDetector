@@ -5,7 +5,6 @@ import struct
 import sys
 import copy
 from math import ceil
-from numpy import ndarray
 
 from abc import ABC, abstractmethod
 
