@@ -30,7 +30,7 @@ def render():
         with open(path + file, "rb") as f:
             datas.append(pickle.load(f))
 
-    fig, axes = plt.subplots(4)
+    fig, axes = plt.subplots(1)
     camera = Camera(fig)
 
     power_data = datas[0].get_data()
@@ -41,10 +41,10 @@ def render():
 
     filter_kernel_size = 41
 
-    for data in datas:
+    for i, data in enumerate(datas[0:1]):
         power_data = data.get_data()
         freq_list = data.get_freq()
-        # power_data = signal.medfilt2d(power_data)
+
         freq_list = freq_list[filter_kernel_size : -1 * filter_kernel_size]
         power_data = np.rot90(power_data)
 
@@ -55,12 +55,10 @@ def render():
         exp_data = signal.medfilt(power_data[:][3:-3])
         exp_data -= mean_signal
         exp_data = np.exp(exp_data)
-        axes[3].plot(exp_data)
 
         for number in range(len(power_data)):
             axes[0].plot(power_data[number], color="green")
-            # a, b = signal.iirfilter(2, 0.4, btype="low")
-            # axes[0].plot(signal.lfilter(a, b, power_data[number]), color="red")
+            plt.title = f"{i}:{number}"
 
             filer_data = signal.medfilt(
                 power_data[number], kernel_size=filter_kernel_size
@@ -73,21 +71,14 @@ def render():
 
             exp_data = filer_data - mean_signal
 
-            # exp_data = np.float_power(exp_data, 0.5)
             exp_data = np.exp(exp_data)
-            # exp_data = np.power(exp_data, 1 / 4)
 
             exp_data[exp_data > 100] = 100
-            # print(exp_data)
 
             axes[2].plot(
                 freq_list,
                 exp_data,
             )
-            # axes[2].plot(np.zeros(len(exp_data)))
-
-            # speed = np.tan(filer_data[1:] - filer_data[:-1])
-            # axes[2].plot(speed)
 
             camera.snap()
 
@@ -107,14 +98,14 @@ def detect_matrix():
 
     fig, axes = plt.subplots(2)
 
-    power_data = datas[2].get_data()
-    freq_list = datas[2].get_freq()
+    power_data = datas[0].get_data()
+    freq_list = datas[0].get_freq()
 
     power_data = np.rot90(power_data)
     print(len(power_data))
     null_kernel_size = 21
 
-    filter_kernel_size = 21
+    filter_kernel_size = 31
     # power_data = signal.medfilt2d(
     #     power_data[filter_kernel_size : -1 * filter_kernel_size]
     # )[:, 3:-3]
@@ -127,22 +118,40 @@ def detect_matrix():
 
     mean_signal = np.mean(filer_signal)
 
-    exp_data = signal.medfilt(power_data, kernel_size=filter_kernel_size)
-    print(len(exp_data[0]))
-    exp_data = exp_data[:, filter_kernel_size:-filter_kernel_size]
-    print(len(exp_data[0]))
+    # power_data = signal.medfilt(power_data, kernel_size=filter_kernel_size)
+    print(power_data)
 
-    exp_data -= mean_signal
-    exp_data = np.exp(exp_data)
-    print(exp_data)
+    # exp_data = power_data[:, filter_kernel_size:-filter_kernel_size]
+
+    null_data = power_data - mean_signal
+
     # exp_data = exp_data - 1
-    print(len(exp_data))
-    for data in range(len(exp_data)):
-        line = exp_data[data]
-        print(line)
-        line[line < 10] = 0
-        line[line > 10] = 1
-        axes[0].plot(freq_list, line * data, "ro")
+
+    one_line = 50
+    for data in range(len(null_data)):
+        line = null_data[data]
+        line = signal.medfilt(line, kernel_size=filter_kernel_size)
+        line = line[filter_kernel_size:-filter_kernel_size]
+
+        line = np.exp(line)
+        # print(line)
+        line[line < one_line] = 0
+        line[line > one_line] = 1
+        axes[0].plot(line * (len(null_data) - data), "ro")
+
+    # filter_data = signal.medfilt2d(power_data)
+    filter_data = power_data
+    for i, data in enumerate(power_data):
+        filter_data[i] = signal.medfilt(data, kernel_size=filter_kernel_size)
+
+    filter_data = filter_data[:, filter_kernel_size:-filter_kernel_size]
+    filter_data = filter_data - mean_signal
+    exp_data = np.power(4, filter_data)
+    exp_data = np.power(exp_data, 0.5)
+
+    exp_data -= 1
+    exp_data[exp_data > 255] = 255
+    axes[1].imshow(exp_data)
 
     plt.show()
 
