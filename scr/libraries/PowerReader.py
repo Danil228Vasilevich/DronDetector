@@ -8,9 +8,9 @@ from math import ceil
 
 from abc import ABC, abstractmethod
 
-from DataClasses.PowerBuffer import PowerBuffer
-from DataClasses.DataFreq import RangeFreq
-from DataClasses.Task import PowerTask
+from DataClasses import PowerBuffer
+from DataClasses import RangeFreq
+from DataClasses import PowerTask
 
 
 class PowerReader(ABC):

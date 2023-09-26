@@ -2,8 +2,8 @@ import numpy as np
 from abc import ABC, abstractmethod
 
 
-from DataClasses.PowerBuffer import PowerBuffer
-from DataClasses.Task import PowerTask
+from .PowerBuffer import PowerBuffer
+from .Task import PowerTask
 
 
 class Stack(ABC):

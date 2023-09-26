@@ -1,7 +1,7 @@
 from numpy import ndarray
 import struct
 import numpy as np
-from DataClasses.Task import PowerTask
+from .Task import PowerTask
 
 
 class PowerBuffer:

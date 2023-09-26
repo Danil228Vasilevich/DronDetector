@@ -1,4 +1,4 @@
-from DataClasses.DataFreq import RangeFreq
+from .DataFreq import RangeFreq
 
 
 class PowerTask:

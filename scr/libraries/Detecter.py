@@ -9,56 +9,16 @@ from PowerReader import PowerReader, SweepPower
 
 from abc import ABC, abstractmethod
 
-from DataClasses.DataFreq import RangeFreq
-from DataClasses.PowerBuffer import PowerBuffer
-from DataClasses.Stack import QueuePowerBuffer, CircularStack
-from DataClasses.Task import PowerTask
+from DataClasses import RangeFreq
+from DataClasses import PowerBuffer
+from DataClasses import QueuePowerBuffer, CircularStack
+from DataClasses import PowerTask
+from DataClasses import Packet
 
 
 class Detector(ABC):
-    pass
-
-
-class Packet:
     def __init__(self) -> None:
         pass
-
-
-class Drone:
-    def __init__(self) -> None:
-        self._packages: Packet
-        self._center_freq: float
-        self._channel_width: float
-        self._power_signal: float
-
-    # -----------------------------------getters--------------------------------------
-    @property
-    def power_signal(self):
-        return self._power_signal
-
-    @property
-    def center_freq(self):
-        return self._center_freq
-
-    @property
-    def channel_width(self):
-        return self._channel_width
-
-    @property
-    def start_freq(self):
-        return self._center_freq - (self._channel_width / 2)
-
-    @property
-    def stop_freq(self):
-        return self._center_freq + (self._center_freq / 2)
-
-    # ---------------------------------------------------------------------------------
-    def is_your_packet(self, packet: Packet) -> bool:
-        return False
-
-    def packet_append(self, packet: Packet) -> bool:
-        is_your = self.is_your_packet(packet)
-        return is_your
 
 
 class DroneDetecter(Detector):
