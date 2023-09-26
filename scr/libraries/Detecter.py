@@ -77,7 +77,6 @@ class PowerRecorder(Detecter):
 
             power_buffer = self._queue.get()
             name_file = f"{self._path}Sample{self._count}.data"
-
             with open(name_file, "w+b") as f:
                 print("save_data")
                 pickle.dump(power_buffer, f)
