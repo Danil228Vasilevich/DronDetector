@@ -106,9 +106,7 @@ def detect_matrix():
     null_kernel_size = 21
 
     filter_kernel_size = 31
-    # power_data = signal.medfilt2d(
-    #     power_data[filter_kernel_size : -1 * filter_kernel_size]
-    # )[:, 3:-3]
+
     print(len(power_data))
     freq_list = freq_list[filter_kernel_size : -1 * filter_kernel_size]
 

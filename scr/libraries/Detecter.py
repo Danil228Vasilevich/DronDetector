@@ -15,7 +15,53 @@ from DataClasses.Stack import QueuePowerBuffer, CircularStack
 from DataClasses.Task import PowerTask
 
 
-class Detecter:
+class Detector(ABC):
+    pass
+
+
+class Packet:
+    def __init__(self) -> None:
+        pass
+
+
+class Drone:
+    def __init__(self) -> None:
+        self._packages: Packet
+        self._center_freq: float
+        self._channel_width: float
+        self._power_signal: float
+
+    # -----------------------------------getters--------------------------------------
+    @property
+    def power_signal(self):
+        return self._power_signal
+
+    @property
+    def center_freq(self):
+        return self._center_freq
+
+    @property
+    def channel_width(self):
+        return self._channel_width
+
+    @property
+    def start_freq(self):
+        return self._center_freq - (self._channel_width / 2)
+
+    @property
+    def stop_freq(self):
+        return self._center_freq + (self._center_freq / 2)
+
+    # ---------------------------------------------------------------------------------
+    def is_your_packet(self, packet: Packet) -> bool:
+        return False
+
+    def packet_append(self, packet: Packet) -> bool:
+        is_your = self.is_your_packet(packet)
+        return is_your
+
+
+class DroneDetecter(Detector):
     def __init__(self, circular_task: CircularStack, power_source_constructor) -> None:
         self._circular_task: CircularStack = circular_task
         self._is_alive = False
@@ -60,7 +106,12 @@ class Detecter:
             # Тут есть алгоритм
 
 
-class PowerRecorder(Detecter):
+class PacketDetector:
+    def __init__(self) -> None:
+        pass
+
+
+class PowerRecorder(DroneDetecter):
     def __init__(
         self, circular_task: CircularStack, power_source_constructor, path: str
     ) -> None:
@@ -88,5 +139,5 @@ if __name__ == "__main__":
     task = PowerTask(freq, 100)
     stack = CircularStack([task])
     power_source = SweepPower
-    detect = Detecter(stack, power_source)
+    detect = DroneDetecter(stack, power_source)
     detect.start()
